@@ -33,7 +33,14 @@ function findCli(name) {
   if (plat === 'win32') {
     try {
       const out = execFileSync('where', [name], { encoding: 'utf8', timeout: 3000, windowsHide: true });
-      const line = out.split(/\r?\n/).map((s) => s.trim()).find(Boolean);
+      const lines = out.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+      // npm 在 Windows 上会同时装一个无扩展名的 POSIX shell 脚本（`claude`）和
+      // Windows 可执行的 `claude.cmd`。`where` 把前者列在第一个，而 CreateProcess /
+      // wt / Start-Process 都执行不了 shell 脚本（ENOENT），新开终端会直接报错。
+      // 因此优先选 .cmd/.exe/.bat/.ps1 这类真正的 Windows 入口，再退回首行。
+      const win = lines.find((l) => /\.(cmd|exe|bat|ps1|com)$/i.test(l));
+      if (win) return win;
+      const line = lines[0];
       if (line) return line;
     } catch {}
     return name;
