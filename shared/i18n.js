@@ -399,7 +399,7 @@
     'panel.diagCorrections': '修正 {n} 次流式增量',
     'panel.diagEstimated': '{n} 个模型使用家族估价',
     'panel.diagStale': '价目超过 48h 未更新',
-    'panel.calReadout': '{k} · <b>${c}</b> · {t} tok · {m} 轮',
+    'panel.calReadout': '{k} · <b>¥${c}</b> · {t} tok · {m} 轮',
 
     'bg.running': '该跑',
     'bg.suspect': '可疑',
@@ -770,7 +770,7 @@
     'panel.diagCorrections': '{n} streaming corrections',
     'panel.diagEstimated': '{n} models use family estimates',
     'panel.diagStale': 'pricing is over 48h old',
-    'panel.calReadout': '{k} · <b>${c}</b> · {t} tok · {m} turns',
+    'panel.calReadout': '{k} · <b>¥${c}</b> · {t} tok · {m} turns',
 
     'bg.running': 'Expected',
     'bg.suspect': 'Suspicious',
@@ -1141,7 +1141,7 @@
     'panel.diagCorrections': 'ストリーム増分を {n} 回補正',
     'panel.diagEstimated': '{n} モデルはファミリー推定価格',
     'panel.diagStale': '価格データが48時間以上未更新',
-    'panel.calReadout': '{k} · <b>${c}</b> · {t} tok · {m} ターン',
+    'panel.calReadout': '{k} · <b>¥${c}</b> · {t} tok · {m} ターン',
 
     'bg.running': '想定内',
     'bg.suspect': '疑わしい',
