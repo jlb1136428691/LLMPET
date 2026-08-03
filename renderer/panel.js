@@ -37,9 +37,9 @@ function render(s) {
     $('active-sub').textContent = `${s.active.project} · ${shortModel(s.active.model)}`;
   }
   // 大数
-  $('today-cost').textContent = '$' + (s.today.cost || 0).toFixed(3);
+  $('today-cost').textContent = '¥' + (s.today.cost || 0).toFixed(3);
   $('today-tokens').textContent = fmt(s.today.tokens) + ' tokens · ' + s.today.messages + t('panel.rounds');
-  $('win-cost').textContent = '$' + (s.window5h.cost || 0).toFixed(3);
+  $('win-cost').textContent = '¥' + (s.window5h.cost || 0).toFixed(3);
   if (s.window5h.tokens > 0 && s.window5h.resetTs) {
     $('win-reset').textContent = fmt(s.window5h.tokens) + ' tok · ' + timeStr(s.window5h.resetTs) + t('panel.reset');
   } else {
@@ -239,7 +239,7 @@ function renderChart(hourlyCost, hourlyTokens) {
       if (value > peakV) { peakV = value; peakH = h; }
       const pct = Math.max(3, Math.round((value / max) * 100));
       const cls = value <= 0 ? 'bar empty' : h === nowH ? 'bar now' : 'bar';
-      const display = usageMetric === 'cost' ? '$' + value.toFixed(3) : fmt(value) + ' tok';
+      const display = usageMetric === 'cost' ? '¥' + value.toFixed(3) : fmt(value) + ' tok';
       return `<div class="${cls}" data-h="${h}" data-v="${escapeHtml(display)}" style="height:${value <= 0 ? 4 : pct}%" title="${h}:00 · ${escapeHtml(display)}"></div>`;
     })
     .join('');
