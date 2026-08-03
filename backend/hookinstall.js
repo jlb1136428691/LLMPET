@@ -61,11 +61,11 @@ function writeAtomic(obj) {
 }
 
 function commandHook(nodeBin, event) {
-  const cmd = `"${nodeBin}" "${HOOK_SCRIPT}" ${event}`;
-  if (process.platform === 'win32') {
-    return { type: 'command', shell: 'powershell', command: `& ${cmd}`, timeout: STATE_TIMEOUT_S };
-  }
-  return { type: 'command', command: cmd, timeout: STATE_TIMEOUT_S };
+  // Claude Code executes hooks through the login shell (bash on Windows here),
+  // so the PowerShell call operator `&` is a bash syntax error that blocks the
+  // event. The plain `"<node>" "<hook>" <Event>` form runs fine in bash, cmd,
+  // and PowerShell alike, so emit it on every platform — no win32 special case.
+  return { type: 'command', command: `"${nodeBin}" "${HOOK_SCRIPT}" ${event}`, timeout: STATE_TIMEOUT_S };
 }
 
 function isOurCommand(hook) {

@@ -1111,6 +1111,27 @@ function applyLang(lang) {
   log('main', `lang → ${lang}`);
 }
 
+// 开机自启（QQ 式开关）：通过系统登录项实现。开发态 process.execPath 是
+// electron 本体，必须带上 app 目录参数，否则登录后只会弹一个空窗口；
+// 打包态是应用自己的 exe，不需要参数。
+function applyAutoStart(on) {
+  const enabled = !!on;
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: enabled,
+      path: process.execPath,
+      args: app.isPackaged ? [] : [app.getAppPath()],
+    });
+  } catch (err) {
+    log('main', `setLoginItemSettings failed: ${err.message}`);
+    return;
+  }
+  config.save({ autoStart: enabled });
+  broadcastConfig();
+  refreshTrayMenu();
+  log('main', `autoStart → ${enabled}`);
+}
+
 // ── tray ──────────────────────────────────────────────────────────────────────
 function buildTray() {
   let img;
@@ -1161,6 +1182,8 @@ function refreshTrayMenu() {
       { label: t('shape.panel'), type: 'radio', checked: mode === 'panel', click: () => applyMode('panel') },
       { label: t('shape.menubar'), type: 'radio', checked: mode === 'menubar', click: () => applyMode('menubar') },
     ] },
+    { label: t('tray.autoStart'), type: 'checkbox', checked: !!cfg.autoStart,
+      click: () => applyAutoStart(!config.get().autoStart) },
     { label: t('tray.budget'), submenu: [
       { label: t('tray.budgetOff'), type: 'radio', checked: !budget, click: () => applyBudget(0) },
       { label: '$10', type: 'radio', checked: budget === 10, click: () => applyBudget(10) },
@@ -1234,6 +1257,8 @@ if (!gotTheLock) {
 } else {
   app.on('second-instance', () => { try { for (const st of petStates()) st.win.show(); } catch {} });
   app.whenReady().then(async () => {
+    // Windows 任务栏/通知归属:必须与应用 appId 一致,否则图标不分组、通知无归属
+    if (process.platform === 'win32') app.setAppUserModelId('com.myunwang.octopus');
     if (process.platform === 'darwin' && app.dock) app.dock.hide();
     const rival = await findRivalInstance();
     if (rival) {
@@ -1246,6 +1271,8 @@ if (!gotTheLock) {
       return;
     }
     migrateState();
+    // 开机自启：每次启动按持久化配置同步系统登录项（托盘「开机自启」可切换）
+    applyAutoStart(config.get().autoStart);
     registerIpc();
     bootBackend();
     createPetWindows();

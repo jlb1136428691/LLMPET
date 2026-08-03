@@ -25,6 +25,7 @@ const DEFAULTS = Object.freeze({
   skinCodex: 'cat',       // 双宠模式里 Codex 宠的形象（和主形象错开才认得出谁是谁）
   petPositionCodex: null, // {x,y} | null — Codex 宠的落脚点
   lang: 'zh',             // 'zh' | 'en' | 'ja' — 界面与表情包文案语言
+  autoStart: true,        // 开机自启（注册系统登录项，QQ 式开关，托盘可切换）
   pinnedSessions: [],     // 会话 HUD 置顶项（按稳定 session id）
   archivedSessions: [],   // 会话 HUD 归档项（不影响后端任务本身）
 });
@@ -63,6 +64,7 @@ function sanitize(raw) {
     out.petPositionCodex = { x: Math.round(raw.petPositionCodex.x), y: Math.round(raw.petPositionCodex.y) };
   }
   if (['zh', 'en', 'ja'].includes(raw.lang)) out.lang = raw.lang;
+  out.autoStart = raw.autoStart !== false; // 默认开；显式关(false)才关
   out.pinnedSessions = sanitizeSessionIds(raw.pinnedSessions);
   out.archivedSessions = sanitizeSessionIds(raw.archivedSessions)
     .filter((id) => !out.pinnedSessions.includes(id));
