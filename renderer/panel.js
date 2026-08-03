@@ -161,12 +161,12 @@ function renderByModel(byModel) {
     html += `<div class="m-item">`
       + `<div class="m-head"><span class="mc">${escapeHtml(shortModel(model))}</span>`
       + `<span class="m-bar"><i style="width:${pct}%"></i></span>`
-      + `<b class="m-cost">$${(v.cost || 0).toFixed(3)}</b>`
+      + `<b class="m-cost">¥${(v.cost || 0).toFixed(3)}</b>`
       + `<span class="m-tok">${fmt(v.tokens)} · ${pct}%</span></div>`
       + detail + `</div>`;
   }
   html += `<div class="m-item m-total"><div class="m-head"><span class="mc">${escapeHtml(t('panel.total'))}</span>`
-    + `<span class="m-bar"></span><b class="m-cost">$${totCost.toFixed(3)}</b>`
+    + `<span class="m-bar"></span><b class="m-cost">¥${totCost.toFixed(3)}</b>`
     + `<span class="m-tok">${fmt(totTok)}</span></div></div>`;
   bm.innerHTML = html;
 }
@@ -278,7 +278,7 @@ function renderCal(daily) {
       const metricValue = usageMetric === 'cost' ? c.cost : c.tokens;
       const lvl = metricValue <= 0 ? 0 : Math.min(4, Math.max(1, Math.ceil((metricValue / max) * 4)));
       const isToday = c.k === todayK ? ' today' : '';
-      html += `<div class="cal-cell lv${lvl}${isToday}" data-k="${c.k}" data-c="${c.cost.toFixed(2)}" data-t="${fmt(c.tokens)}" data-m="${c.msgs}" title="${c.k} · $${c.cost.toFixed(2)}"></div>`;
+      html += `<div class="cal-cell lv${lvl}${isToday}" data-k="${c.k}" data-c="${c.cost.toFixed(2)}" data-t="${fmt(c.tokens)}" data-m="${c.msgs}" title="${c.k} · ¥${c.cost.toFixed(2)}"></div>`;
     }
     html += '</div>';
   }

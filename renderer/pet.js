@@ -2337,8 +2337,8 @@ function applyStats(s) {
       : t('chip.quotaNone');
     chipWindow.title = t('chip.codexTitle');
   } else {
-    chipCost.textContent = '$' + (s.today.cost || 0).toFixed(3);
-    chipWindow.textContent = '5h $' + (s.window5h.cost || 0).toFixed(3);
+    chipCost.textContent = '¥' + (s.today.cost || 0).toFixed(3);
+    chipWindow.textContent = '5h ¥' + (s.window5h.cost || 0).toFixed(3);
   }
   lastWaiting = (s.waitingCount || 0) + (s.needsinputCount || 0); // 待处理徽标含「等你回复」
   lastBgZombie = (s.bg && s.bg.zombie) || 0;

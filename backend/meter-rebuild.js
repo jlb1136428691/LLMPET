@@ -55,10 +55,10 @@ async function main() {
     const o = before.byModel[id] || 0;
     const n = after.byModel[id] || 0;
     const mark = Math.abs(n - o) > 0.005 ? '  ← 变化' : '';
-    console.log(`  ${id.padEnd(24)} $${o.toFixed(2).padStart(10)} → $${n.toFixed(2).padStart(10)}${mark}`);
+    console.log(`  ${id.padEnd(24)} ¥${o.toFixed(2).padStart(10)} → ¥${n.toFixed(2).padStart(10)}${mark}`);
   }
   const delta = after.cost - before.cost;
-  console.log(`\n合计  $${before.cost.toFixed(2)} → $${after.cost.toFixed(2)}  (${delta >= 0 ? '+' : ''}$${delta.toFixed(2)})`);
+  console.log(`\n合计  ¥${before.cost.toFixed(2)} → ¥${after.cost.toFixed(2)}  (${delta >= 0 ? '+' : ''}¥${delta.toFixed(2)})`);
   console.log('已写回 ~/.octopus/usage.json —— 重开 LLMPET 详情面板即见新数字。');
 }
 

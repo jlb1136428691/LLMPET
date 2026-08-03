@@ -1186,11 +1186,11 @@ function refreshTrayMenu() {
       click: () => applyAutoStart(!config.get().autoStart) },
     { label: t('tray.budget'), submenu: [
       { label: t('tray.budgetOff'), type: 'radio', checked: !budget, click: () => applyBudget(0) },
-      { label: '$10', type: 'radio', checked: budget === 10, click: () => applyBudget(10) },
-      { label: '$20', type: 'radio', checked: budget === 20, click: () => applyBudget(20) },
-      { label: '$30', type: 'radio', checked: budget === 30, click: () => applyBudget(30) },
-      { label: '$50', type: 'radio', checked: budget === 50, click: () => applyBudget(50) },
-      { label: '$100', type: 'radio', checked: budget === 100, click: () => applyBudget(100) },
+      { label: '¥10', type: 'radio', checked: budget === 10, click: () => applyBudget(10) },
+      { label: '¥20', type: 'radio', checked: budget === 20, click: () => applyBudget(20) },
+      { label: '¥30', type: 'radio', checked: budget === 30, click: () => applyBudget(30) },
+      { label: '¥50', type: 'radio', checked: budget === 50, click: () => applyBudget(50) },
+      { label: '¥100', type: 'radio', checked: budget === 100, click: () => applyBudget(100) },
     ] },
     ...(process.platform === 'darwin' ? [
       { label: t('tray.patrol'), type: 'checkbox', checked: !!cfg.territory,

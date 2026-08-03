@@ -44,6 +44,14 @@ const DEFAULT_PRICING = {
   fable:   { input: 10, output: 50, cacheWrite5m: 12.5,  cacheWrite1h: 20, cacheRead: 1 },
   sonnet:  { input: 3,  output: 15, cacheWrite5m: 3.75,  cacheWrite1h: 6, cacheRead: 0.3 },
   haiku:   { input: 1,  output: 5,  cacheWrite5m: 1.25,  cacheWrite1h: 2, cacheRead: 0.1 },
+  // DeepSeek 官方中国区价（元 / 百万 tokens，api-docs.deepseek.com 公开定价）：
+  //   flash  输入(缓存未命中)¥1 / 输出¥2 / 缓存命中¥0.02
+  //   pro    输入(缓存未命中)¥3 / 输出¥6 / 缓存命中¥0.025
+  // 缓存写入按普通输入价计（无 5m/1h 分层），故两个 cacheWrite 字段镜像 input。
+  // V4 有「峰谷定价」：高峰时段（北京时间 9-12、14-18）价格翻倍，此处按平时价。
+  // 若代理费率不同，可用 ~/.octopus/pricing.json 覆盖。
+  deepseekFlash: { input: 1, output: 2, cacheWrite5m: 1, cacheWrite1h: 1, cacheRead: 0.02, contextWindow: 1000000 },
+  deepseekPro:   { input: 3, output: 6, cacheWrite5m: 3, cacheWrite1h: 3, cacheRead: 0.025, contextWindow: 1000000 },
   default: { input: 3,  output: 15, cacheWrite5m: 3.75,  cacheWrite1h: 6, cacheRead: 0.3 },
 };
 
@@ -125,9 +133,15 @@ function loadPricing(options = {}) {
       }
     }
   } catch {}
-  for (const fam of ['opus', 'fable', 'sonnet', 'haiku', 'default']) {
+  for (const fam of ['opus', 'fable', 'sonnet', 'haiku', 'default', 'deepseekFlash', 'deepseekPro']) {
     out[fam] = normalizePriceRow(out[fam], DEFAULT_PRICING[fam] || DEFAULT_PRICING.default);
   }
+  // Seed the exact-model table for the deepseek ids so priceFor()'s precise
+  // lookup (and transcript.js's contextLimit) pick up the official rates + 1M
+  // window even without a LiteLLM sync. Overrides/cache still win via the `!`
+  // guard — an explicit user entry for these ids is never overwritten.
+  if (!out._models['deepseek-v4-flash']) out._models['deepseek-v4-flash'] = normalizePriceRow(out.deepseekFlash, DEFAULT_PRICING.deepseekFlash);
+  if (!out._models['deepseek-v4-pro']) out._models['deepseek-v4-pro'] = normalizePriceRow(out.deepseekPro, DEFAULT_PRICING.deepseekPro);
   return out;
 }
 
@@ -142,6 +156,10 @@ function priceFor(pricing, model) {
   if (m.includes('fable')) return normalizePriceRow(pricing.fable || pricing.default);
   if (m.includes('haiku')) return normalizePriceRow(pricing.haiku);
   if (m.includes('sonnet')) return normalizePriceRow(pricing.sonnet);
+  // DeepSeek V4 via proxy (claude-code on a deepseek endpoint). Pro has to be
+  // checked before the generic deepseek keyword so it isn't swallowed by flash.
+  if (m.includes('deepseek') && m.includes('pro')) return normalizePriceRow(pricing.deepseekPro || pricing.default);
+  if (m.includes('deepseek')) return normalizePriceRow(pricing.deepseekFlash || pricing.default);
   return normalizePriceRow(pricing.default);
 }
 
