@@ -48,7 +48,6 @@ const DEFAULT_PRICING = {
   //   flash  输入(缓存未命中)¥1 / 输出¥2 / 缓存命中¥0.02
   //   pro    输入(缓存未命中)¥3 / 输出¥6 / 缓存命中¥0.025
   // 缓存写入按普通输入价计（无 5m/1h 分层），故两个 cacheWrite 字段镜像 input。
-  // V4 有「峰谷定价」：高峰时段（北京时间 9-12、14-18）价格翻倍，已按时间区间自动计算。
   // 若代理费率不同，可用 ~/.octopus/pricing.json 覆盖。
   deepseekFlash: { input: 1, output: 2, cacheWrite5m: 1, cacheWrite1h: 1, cacheRead: 0.02, contextWindow: 1000000 },
   deepseekPro:   { input: 3, output: 6, cacheWrite5m: 3, cacheWrite1h: 3, cacheRead: 0.025, contextWindow: 1000000 },
@@ -163,24 +162,9 @@ function priceFor(pricing, model) {
   return normalizePriceRow(pricing.default);
 }
 
-// DeepSeek V4 峰谷定价：高峰时段（北京时间 9-12、14-18）价格为平时 2 倍，
-// 缓存命中/写入同样翻倍（官方峰谷是整体翻倍）。其余模型不受影响。
-const BEIJING_PEAK = [[9, 12], [14, 18]];
-function isBeijingPeak(tsMs) {
-  const h = new Date(tsMs + 8 * 3600 * 1000).getUTCHours(); // 显式 UTC+8，不依赖系统时区
-  return BEIJING_PEAK.some(([a, b]) => h >= a && h < b);
-}
-// 某条记录实际生效的单价：在高峰时段对 deepseek 模型按 2 倍计。
+// 某条记录实际生效的单价（无峰谷翻倍：实测官方高峰期并未额外扣费，按平常价计）。
 function priceForAt(pricing, model, tsMs) {
-  const p = priceFor(pricing, model);
-  if (!isBeijingPeak(tsMs)) return p;
-  const m = String(model || '').toLowerCase();
-  if (!m.includes('deepseek')) return p;
-  return normalizePriceRow({
-    input: p.input * 2, output: p.output * 2,
-    cacheWrite5m: p.cacheWrite5m * 2, cacheWrite1h: p.cacheWrite1h * 2,
-    cacheRead: p.cacheRead * 2, contextWindow: p.contextWindow,
-  });
+  return priceFor(pricing, model);
 }
 
 function dayKey(ts) {
@@ -200,6 +184,11 @@ function emptyUsage() {
 }
 
 function usageSnapshot(usage) {
+  // 代理预检行：inference_geo === 'not_available' 且 input 是「全量上下文」的
+  // 占位估算，从未真实计费；同一消息的真实 usage 会随后以修正行到达。
+  // 若把占位行算进去，会把缓存命中部分按全价 input 计（kimi 曾因此虚高 ~13x）。
+  // 直接跳过该行（归零 → usageTokens<=0 → ingest 忽略）。
+  if (usage && usage.inference_geo === 'not_available') return emptyUsage();
   const nested = usage && usage.cache_creation && typeof usage.cache_creation === 'object'
     ? usage.cache_creation : {};
   const totalCreate = num(usage && usage.cache_creation_input_tokens);
@@ -688,6 +677,6 @@ function num(v) {
 }
 
 module.exports = {
-  createMetering, DEFAULT_PRICING, normModelName, priceFor, priceForAt, isBeijingPeak, loadPricing,
+  createMetering, DEFAULT_PRICING, normModelName, priceFor, priceForAt, loadPricing,
   normalizePriceRow, mergePriceRow, usageSnapshot, mergeUsage, usageDelta, usageTokens, usageCost,
 };
