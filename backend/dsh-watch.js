@@ -51,7 +51,14 @@ const { decodeFrames, scanFrames, decodeFrame } = require('./zstd');
 
 const DSH_HOME = process.env.DSH_HOME || path.join(os.homedir(), '.dsh');
 const SESSIONS_DIR = path.join(DSH_HOME, 'sessions');
-const LOG_NAMES = ['session.jsonl.zstd', 'session.jsonl'];
+// 新版 dsh 把存储版本写进了文件名：session.v4.jsonl.zstd。v4 的 header/事件信封
+// 与 v0 兼容（header 多出 version/isSeeded/agentPreset，事件仍是 {type,seq,time,data}，
+// turn/step/user/assistant 等类型不变），因此一并发现；版本号仍由 isSupportedHeader
+// 把关，未知版本继续 fail-closed。一个会话目录里只有一份日志，按顺序取第一个存在的。
+const LOG_NAMES = [
+  'session.v4.jsonl.zstd', 'session.v4.jsonl',
+  'session.jsonl.zstd', 'session.jsonl',
+];
 const POLL_MS = 2500;
 const BACKFILL_MAX_AGE_MS = 30 * 60 * 1000; // 与 core 的 backfill 窗口对齐
 const IDLE_UNTRACK_MS = 60 * 60 * 1000;     // 文件超过 1h 没动 → 不再跟踪（再动会重新发现）
@@ -272,8 +279,14 @@ function isHeaderLine(obj) {
   return !!obj && obj.type === 'session' && typeof obj.id === 'string' && !!obj.id;
 }
 
+// Session-log format versions we can parse. v0 = original (unversioned filename,
+// header.version 0); v4 = current DeepSeek Harness preview, which adds `.v4` to the
+// filename and bumps header.version to 4 while keeping the same header + event
+// envelope. Anything else stays unknown and is ignored (fail-closed).
+const SUPPORTED_LOG_VERSIONS = new Set([0, 4]);
+
 function isSupportedHeader(obj) {
-  return isHeaderLine(obj) && obj.version === 0;
+  return isHeaderLine(obj) && SUPPORTED_LOG_VERSIONS.has(obj.version);
 }
 
 // Read the first complete zstd frame only. The persistence plugin deliberately
