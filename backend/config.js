@@ -29,6 +29,7 @@ const DEFAULTS = Object.freeze({
   skinDsh: 'pixel',       // dsh 宠默认像素怪兽，与主宠 DeepSeek 娘 / Codex 月薪喵区分
   petPositionDsh: null,   // {x,y} | null — dsh 宠的落脚点
   lang: 'zh',             // 'zh' | 'en' | 'ja' — 界面与表情包文案语言
+  autoStart: true,        // 开机自启（注册系统登录项，QQ 式开关，托盘可切换）
   pinnedSessions: [],     // 会话 HUD 置顶项（按稳定 session id）
   archivedSessions: [],   // 会话 HUD 归档项（不影响后端任务本身）
   lootCapturedSessions: [], // 掠夺会话快照：限时留在普通会话列表，过期自动隐藏
@@ -121,6 +122,7 @@ function sanitize(raw) {
     out.petPositionDsh = { x: Math.round(raw.petPositionDsh.x), y: Math.round(raw.petPositionDsh.y) };
   }
   if (['zh', 'en', 'ja'].includes(raw.lang)) out.lang = raw.lang;
+  out.autoStart = raw.autoStart !== false; // 默认开；显式关(false)才关
   out.pinnedSessions = sanitizeSessionIds(raw.pinnedSessions);
   out.archivedSessions = sanitizeSessionIds(raw.archivedSessions)
     .filter((id) => !out.pinnedSessions.includes(id));
